@@ -4,6 +4,10 @@ Thought Bag is a small, loose thinking tool for catching words and ideas that co
 
 Instead of turning everything into a rigid note or clean diagram, it lets you drop ideas as soft floating bubbles, move them around, gather them into groups, and come back later to see what was there.
 
+## Screenshot
+
+![Thought Bag screenshot](./screenshot.png)
+
 ## Why I Made This
 
 Sometimes good ideas do not arrive as neat bullet points.
