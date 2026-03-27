@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thought Bag</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Thought Bag</h1>
+    <div class="input-container">
+        <input type="text" id="keyword" placeholder="Enter keyword, press ⌘ + Enter">
+    </div>
+    <div id="keywordContainer"></div>
+    <canvas id="drawCanvas"></canvas>
+    <div class="menu">
+        <div class="hamburger" onclick="toggleMenu()">&#9776;</div>
+        <div class="menu-content" id="menuContent">
+            <button onclick="openHelp()">Help</button>
+            <button onclick="archiveKeywords()">Save Archive</button>
+            <input type="file" id="fileInput" style="display: none;" onchange="loadArchive(event)">
+            <button onclick="document.getElementById('fileInput').click()">Open Archive</button>
+        </div>
+    </div>
+    <div id="helpModal" class="help-modal" aria-hidden="true">
+        <div class="help-card" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+            <button class="help-close" onclick="closeHelp()" aria-label="Close Help">&times;</button>
+            <h2 id="helpTitle">Thought Bag Help</h2>
+            <p>Thought Bag is a soft little space for catching words and ideas that appear in conversation. It is lighter than a note app and looser than a formal mind map.</p>
+            <h3>Add a Keyword</h3>
+            <p>Type a word or short phrase into the input box, then press <code>Cmd + Enter</code>.</p>
+            <h3>Move a Balloon</h3>
+            <p>Drag a small or large balloon to place it where it feels right.</p>
+            <h3>Group Balloons</h3>
+            <p>Draw a loose line around multiple balloons to gather them into one larger group balloon.</p>
+            <h3>Ungroup</h3>
+            <p>Click the <code>&times;</code> on a group balloon to turn it back into small balloons.</p>
+            <h3>Change Colors</h3>
+            <p>Click a balloon to open the color palette, then choose a color.</p>
+            <h3>Save / Open Archive</h3>
+            <p>Use <code>Save Archive</code> to download your current state. Use <code>Open Archive</code> to bring it back later, including grouped balloons.</p>
+            <h3>Start Fresh</h3>
+            <p>If you want to keep what you have now, save an archive first. Reloading the page clears the current balloons and opens a fresh empty canvas.</p>
+            <p class="help-note">Thought Bag is not a strict note-taking tool. It works best for casual conversation, early ideas, and loose brainstorming.</p>
+        </div>
+    </div>
+    <div id="colorPalette" class="color-palette" style="display: none;">
+        <div class="color-sample" style="background-color: #87CEFA;" onclick="setColor('#87CEFA')"></div>
+        <div class="color-sample" style="background-color: #FFA07A;" onclick="setColor('#FFA07A')"></div>
+        <div class="color-sample" style="background-color: #98FB98;" onclick="setColor('#98FB98')"></div>
+        <div class="color-sample" style="background-color: #FFD700;" onclick="setColor('#FFD700')"></div>
+        <div class="color-sample" style="background-color: #DDA0DD;" onclick="setColor('#DDA0DD')"></div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
