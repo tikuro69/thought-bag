@@ -17,9 +17,9 @@
         <div class="hamburger" onclick="toggleMenu()">&#9776;</div>
         <div class="menu-content" id="menuContent">
             <button onclick="openHelp()">Help</button>
-            <button onclick="archiveKeywords()">Save Archive</button>
+            <button onclick="archiveKeywords()">Save Local</button>
             <input type="file" id="fileInput" style="display: none;" onchange="loadArchive(event)">
-            <button onclick="document.getElementById('fileInput').click()">Open Archive</button>
+            <button onclick="document.getElementById('fileInput').click()">Open Local</button>
         </div>
     </div>
     <div id="helpModal" class="help-modal" aria-hidden="true">
@@ -37,10 +37,10 @@
             <p>Click the <code>&times;</code> on a group balloon to turn it back into small balloons.</p>
             <h3>Change Colors</h3>
             <p>Click a balloon to open the color palette, then choose a color.</p>
-            <h3>Save / Open Archive</h3>
-            <p>Use <code>Save Archive</code> to download your current state. Use <code>Open Archive</code> to bring it back later, including grouped balloons.</p>
+            <h3>Save / Open Local</h3>
+            <p>Use <code>Save Local</code> to download your current state as a JSON file. Use <code>Open Local</code> to restore it later, including grouped balloons.</p>
             <h3>Start Fresh</h3>
-            <p>If you want to keep what you have now, save an archive first. Reloading the page clears the current balloons and opens a fresh empty canvas.</p>
+            <p>If you want to keep what you have now, use <code>Save Local</code> first. Reloading the page clears the current balloons and opens a fresh empty canvas.</p>
             <p class="help-note">Thought Bag is not a strict note-taking tool. It works best for casual conversation, early ideas, and loose brainstorming.</p>
         </div>
     </div>

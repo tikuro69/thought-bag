@@ -47,16 +47,6 @@ async function saveKeyword() {
     }
 }
 
-async function loadKeywords() {
-    const response = await fetch('/keywords');
-    keywords = await response.json();
-    const container = document.getElementById('keywordContainer');
-    container.innerHTML = '';
-    keywords.forEach((data, index) => {
-        addKeywordBubble(data, index);
-    });
-}
-
 function addKeywordBubble(data, index) {
     const container = document.getElementById('keywordContainer');
     const bubble = document.createElement('div');
@@ -309,13 +299,17 @@ function archiveKeywords() {
         time: now.toLocaleTimeString(),
         ...serializeBubbleState(),
     };
-    const json = JSON.stringify(archiveData);
+
+    const json = JSON.stringify(archiveData, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
+
     const a = document.createElement('a');
+    const timestamp = now.toISOString().replace(/[:.]/g, '-');
     a.href = url;
-    a.download = `archive_${now.toLocaleDateString()}_${now.toLocaleTimeString()}.json`;
+    a.download = `thought-bag_${timestamp}.json`;
     a.click();
+
     URL.revokeObjectURL(url);
 }
 
@@ -380,7 +374,6 @@ function startDrawing(x, y) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadKeywords();
     const canvas = document.getElementById('drawCanvas');
     const helpModal = document.getElementById('helpModal');
     canvas.width = window.innerWidth;
