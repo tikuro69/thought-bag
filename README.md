@@ -23,8 +23,9 @@ Thought Bag is meant for that in-between space: not polished notes, not task man
 - Draw around multiple bubbles to group them into a larger bubble
 - Ungroup a large bubble back into small bubbles
 - Change colors manually
-- Save and reopen your current state with `Save Archive` / `Open Archive`
+- Save and reopen your current state with `Save Local` / `Open Local`
 - Restore grouped states as groups, not just individual bubbles
+- Keep your data local as JSON files without server-side storage
 
 ## Basic Use
 
@@ -34,29 +35,15 @@ Thought Bag is meant for that in-between space: not polished notes, not task man
 4. Draw a loose shape around several bubbles to turn them into a group.
 5. Click the `×` on a group bubble to break it back into small bubbles.
 6. Click a bubble to change its color if you want to reorganize visually.
-7. Use `Save Archive` to download the current state, and `Open Archive` to restore it later.
+7. Use `Save Local` to download the current state as a JSON file, and `Open Local` to restore it later.
 
 ## Run Locally
 
-This project is a very small Express app.
+Thought Bag is a static browser-based web app.
 
-### Requirements
+Open `public/index.html` directly in your browser.
 
-- Node.js
-- npm
-
-### Start
-
-```bash
-npm install
-npm start
-```
-
-Then open:
-
-```text
-http://localhost:3000
-```
+No server-side storage is used. Your data is saved and restored locally as JSON files.
 
 ## Good For
 
@@ -74,7 +61,7 @@ It is especially useful when you want to notice patterns without forcing everyth
 - This is a lightweight local tool, not a full note-taking system.
 - It is designed for short words and small idea fragments, not long-form writing.
 - Grouping keeps items in a flat internal structure for simplicity.
-- Archives are saved as JSON files and restored locally through the browser.
+- Local saves are exported as JSON files and restored through the browser.
 - There is no voice input feature anymore; the app now focuses on simple keyboard-based capture.
 
 ## Current Name
