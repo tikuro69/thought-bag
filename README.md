@@ -41,7 +41,7 @@ Thought Bag is meant for that in-between space: not polished notes, not task man
 
 Thought Bag is a static browser-based web app.
 
-Open `public/index.html` directly in your browser.
+Open `docs/index.html` directly in your browser.
 
 No server-side storage is used. Your data is saved and restored locally as JSON files.
 
