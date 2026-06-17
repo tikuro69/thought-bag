@@ -40,21 +40,41 @@ input {
 
 .keyword-bubble {
     background-color: #87CEFA;
-    border-radius: 50px;
+    border-radius: 999px;
     padding: 10px 20px;
     color: white;
     font-size: 14px;
     display: inline-block;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    outline: 1px solid transparent;
+    outline-offset: 0;
     position: absolute;
     animation: float 5s ease-in-out infinite;
     animation-delay: calc(-5s * var(--i));
     cursor: move;
-    transition: border-radius 0.3s ease, transform 0.3s ease;
+    transition:
+        border-radius 0.2s ease,
+        box-shadow 0.2s ease,
+        outline-color 0.2s ease,
+        outline-offset 0.2s ease,
+        transform 0.3s ease;
+}
+
+.keyword-bubble.is-locked {
+    animation: none;
+    cursor: default;
+    border-radius: 8px;
+    outline-color: rgba(74, 85, 96, 0.22);
+    outline-offset: 1px;
+    box-shadow: 0 2px 5px rgba(74, 85, 96, 0.08);
 }
 
 .keyword-bubble.wall-hit {
     border-radius: 50%;
+}
+
+.keyword-bubble.is-locked.wall-hit {
+    border-radius: 8px;
 }
 
 .group-bubble {
@@ -77,6 +97,11 @@ input {
     border-radius: 999px;
     padding: 10px 14px;
     margin: 4px;
+}
+
+.group-bubble .keyword-bubble.is-locked {
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(74, 85, 96, 0.08);
 }
 
 .delete-button {

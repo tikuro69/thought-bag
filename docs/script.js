@@ -38,7 +38,8 @@ async function saveKeyword() {
             time: now.toLocaleTimeString(),
             x: Math.random() * 90,
             y: Math.random() * 90,
-            color: getNextKeywordColor()
+            color: getNextKeywordColor(),
+            locked: false
         };
 
         keywords.push(data);
@@ -53,6 +54,7 @@ function addKeywordBubble(data, index) {
     bubble.className = 'keyword-bubble';
     bubble.textContent = data.keyword;
     bubble.style.backgroundColor = data.color;
+    setBubbleLocked(bubble, Boolean(data.locked));
     bubble.style.setProperty('--i', index);
 
     const deleteButton = document.createElement('span');
@@ -68,6 +70,7 @@ function addKeywordBubble(data, index) {
     bubble.style.left = `${data.x}%`;
 
     bubble.addEventListener('mousedown', (e) => {
+        if (isBubbleLocked(bubble)) return;
         document.getElementById('colorPalette').style.display = 'none';
         prepareDrag(bubble, e);
     });
@@ -84,6 +87,10 @@ function addKeywordBubble(data, index) {
         colorPalette.style.top = `${bubbleRect.bottom + window.scrollY}px`;
         colorPalette.style.left = `${bubbleRect.left + window.scrollX}px`;
         colorPalette.style.display = 'flex';
+    });
+
+    attachLockToggle(bubble, (locked) => {
+        data.locked = locked;
     });
 
     container.appendChild(bubble);
@@ -231,7 +238,7 @@ function syncGroupBubbleChildrenPosition(groupBubble, position) {
     const offsetX = position.x - minX;
     const offsetY = position.y - minY;
 
-    const movedBubbles = originalBubbles.map((bubble) => ({
+    const movedBubbles = originalBubbles.map((bubble) => bubble.locked ? bubble : ({
         ...bubble,
         x: bubble.x + offsetX,
         y: bubble.y + offsetY
@@ -259,7 +266,7 @@ function getSerializedGroupBubbles(groupBubble, frame) {
     const offsetX = frame.x - minX;
     const offsetY = frame.y - minY;
 
-    return originalBubbles.map((bubble) => ({
+    return originalBubbles.map((bubble) => bubble.locked ? bubble : ({
         ...bubble,
         x: bubble.x + offsetX,
         y: bubble.y + offsetY
@@ -276,6 +283,7 @@ function serializeBubbleState() {
                 type: 'group',
                 ...frame,
                 color: bubble.style.backgroundColor,
+                locked: isBubbleLocked(bubble),
                 originalBubbles: getSerializedGroupBubbles(bubble, frame)
             };
         }
@@ -285,6 +293,7 @@ function serializeBubbleState() {
             type: 'keyword',
             keyword: getBubbleLabelText(bubble.textContent),
             color: bubble.style.backgroundColor,
+            locked: isBubbleLocked(bubble),
             ...position
         };
     });
@@ -323,7 +332,8 @@ function restoreArchiveState(archiveData) {
         keyword: data.keyword,
         color: data.color,
         x: data.x,
-        y: data.y
+        y: data.y,
+        locked: Boolean(data.locked)
     }));
 
     items.forEach((item) => {
@@ -339,7 +349,8 @@ function restoreArchiveState(archiveData) {
             time: new Date().toLocaleTimeString(),
             x: item.x,
             y: item.y,
-            color: item.color
+            color: item.color,
+            locked: Boolean(item.locked)
         };
         keywords.push(data);
         addKeywordBubble(data, keywords.length - 1);
@@ -460,6 +471,7 @@ function getBubbleLabelText(text) {
 }
 
 function prepareDrag(target, event) {
+    if (isBubbleLocked(target)) return;
     dragCandidate = target;
     offsetX = event.clientX - target.getBoundingClientRect().left;
     offsetY = event.clientY - target.getBoundingClientRect().top;
@@ -476,8 +488,38 @@ function getFlattenedBubbleData(bubble, containerRect) {
     return [{
         text: getBubbleLabelText(bubble.textContent),
         color: bubble.style.backgroundColor,
+        locked: isBubbleLocked(bubble),
         ...getBubblePositionData(bubble, containerRect)
     }];
+}
+
+function isBubbleLocked(bubble) {
+    return bubble && bubble.dataset.locked === 'true';
+}
+
+function setBubbleLocked(bubble, locked) {
+    bubble.dataset.locked = locked ? 'true' : 'false';
+    bubble.classList.toggle('is-locked', locked);
+    bubble.setAttribute('aria-pressed', locked ? 'true' : 'false');
+}
+
+function attachLockToggle(bubble, onToggle) {
+    bubble.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const locked = !isBubbleLocked(bubble);
+        setBubbleLocked(bubble, locked);
+        if (locked) {
+            bubble.style.transition = '';
+        }
+        onToggle(locked);
+
+        if (dragCandidate === bubble || dragTarget === bubble) {
+            dragCandidate = null;
+            dragTarget = null;
+            isDragging = false;
+        }
+    });
 }
 
 //　追加分
@@ -500,7 +542,8 @@ function populateGroupBubble(groupBubble, originalBubbles) {
                 time: new Date().toLocaleTimeString(),
                 x: bubbleData.x,
                 y: bubbleData.y,
-                color: bubbleData.color
+                color: bubbleData.color,
+                locked: Boolean(bubbleData.locked)
             };
             keywords.push(data);
             addKeywordBubble(data, keywords.length - 1);
@@ -515,11 +558,14 @@ function populateGroupBubble(groupBubble, originalBubbles) {
         keywordBubble.className = 'keyword-bubble';
         keywordBubble.textContent = bubbleData.text;
         keywordBubble.style.backgroundColor = bubbleData.color;
+        setBubbleLocked(keywordBubble, Boolean(bubbleData.locked));
         keywordBubble.style.position = 'relative';
         keywordBubble.style.top = '0';
         keywordBubble.style.left = '0';
         keywordBubble.style.margin = `${4 + Math.random() * 6}px`;
         keywordBubble.style.transform = `translate(${Math.random() * 10 - 5}px, ${Math.random() * 8 - 4}px)`;
+        keywordBubble.dataset.groupChildIndex = String(groupBubble.children.length - 1);
+        attachGroupChildLockToggle(groupBubble, keywordBubble);
         groupBubble.appendChild(keywordBubble);
     });
 
@@ -535,6 +581,7 @@ function createGroupBubbleFromData(groupData) {
     groupBubble.style.height = `${groupData.height}%`;
     groupBubble.style.left = `${groupData.x}%`;
     groupBubble.style.top = `${groupData.y}%`;
+    setBubbleLocked(groupBubble, Boolean(groupData.locked));
 
     return populateGroupBubble(groupBubble, groupData.originalBubbles || []);
 }
@@ -568,6 +615,9 @@ function createGroupBubble(bubbles) {
 function setupGroupBubbleEvents(groupBubble) {
     groupBubble.addEventListener('mousedown', (e) => {
         if (e.target.classList.contains('delete-button')) return;
+        const childBubble = e.target.closest('.keyword-bubble');
+        if (childBubble && childBubble !== groupBubble && isBubbleLocked(childBubble)) return;
+        if (isBubbleLocked(groupBubble)) return;
         prepareDrag(groupBubble, e);
     });
 
@@ -584,5 +634,23 @@ function setupGroupBubbleEvents(groupBubble) {
         colorPalette.style.top = `${bubbleRect.bottom + window.scrollY}px`;
         colorPalette.style.left = `${bubbleRect.left + window.scrollX}px`;
         colorPalette.style.display = 'flex';
+    });
+
+    attachLockToggle(groupBubble, () => {});
+}
+
+function attachGroupChildLockToggle(groupBubble, childBubble) {
+    childBubble.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const locked = !isBubbleLocked(childBubble);
+        setBubbleLocked(childBubble, locked);
+
+        const childIndex = Number(childBubble.dataset.groupChildIndex);
+        const originalBubbles = JSON.parse(groupBubble.dataset.originalBubbles || '[]');
+        if (originalBubbles[childIndex]) {
+            originalBubbles[childIndex].locked = locked;
+            groupBubble.dataset.originalBubbles = JSON.stringify(originalBubbles);
+        }
     });
 }

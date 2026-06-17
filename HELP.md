@@ -11,6 +11,13 @@ Type a word or short phrase into the input box, then press `Cmd + Enter`.
 
 Drag a small or large balloon to place it where it feels right.
 
+## Lock a Balloon
+
+Right-click a balloon to lock it in place.  
+Locked balloons cannot be dragged or moved.  
+Right-click again to unlock.  
+Locked balloons appear slightly more angular.
+
 ## Group Balloons
 
 Draw a loose line around multiple balloons to gather them into one larger group balloon.
