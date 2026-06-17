@@ -151,10 +151,18 @@ document.addEventListener('mousemove', (e) => {
         let x = e.clientX - offsetX - containerRect.left;
         let y = e.clientY - offsetY - containerRect.top;
 
-        if (x < 0) x = 0;
-        if (y < 0) y = 0;
-        if (x + dragTarget.clientWidth > containerRect.width) x = containerRect.width - dragTarget.clientWidth;
-        if (y + dragTarget.clientHeight > containerRect.height) y = containerRect.height - dragTarget.clientHeight;
+        const minX = -containerRect.left;
+        const minY = -containerRect.top;
+        let maxX = window.innerWidth - containerRect.left - dragTarget.clientWidth;
+        let maxY = window.innerHeight - containerRect.top - dragTarget.clientHeight;
+
+        if (maxX < minX) maxX = minX;
+        if (maxY < minY) maxY = minY;
+
+        if (x < minX) x = minX;
+        if (y < minY) y = minY;
+        if (x > maxX) x = maxX;
+        if (y > maxY) y = maxY;
 
         dragTarget.style.left = `${x}px`;
         dragTarget.style.top = `${y}px`;
@@ -181,8 +189,8 @@ document.addEventListener('mouseup', () => {
             }
         }
 
-        if (bubbleRect.left <= containerRect.left || bubbleRect.right >= containerRect.right ||
-            bubbleRect.top <= containerRect.top || bubbleRect.bottom >= containerRect.bottom) {
+        if (bubbleRect.left <= 0 || bubbleRect.right >= window.innerWidth ||
+            bubbleRect.top <= 0 || bubbleRect.bottom >= window.innerHeight) {
             dragTarget.classList.add('wall-hit');
         }
 
