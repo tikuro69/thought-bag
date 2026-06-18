@@ -22,13 +22,26 @@ h1 {
     z-index: 3; /* キャンバスの上に配置 */
 }
 
-input {
+input,
+textarea {
     margin: 10px;
     padding: 10px;
     font-size: 16px;
     border: 2px solid #ccc;
     border-radius: 5px;
     width: 250px;
+    font-family: inherit;
+}
+
+textarea {
+    box-sizing: border-box;
+    height: 46px;
+    min-height: 46px;
+    max-height: 46px;
+    padding: 10px 12px;
+    line-height: 24px;
+    resize: none;
+    overflow-y: auto;
 }
 
 #keywordContainer {
@@ -104,6 +117,38 @@ input {
 .group-bubble .keyword-bubble.is-locked {
     border-radius: 12px;
     box-shadow: 0 1px 4px rgba(74, 85, 96, 0.08);
+}
+
+.floating-text {
+    position: absolute;
+    display: inline-block;
+    max-width: 320px;
+    color: #3f4b55;
+    font-size: 16px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    cursor: move;
+    user-select: none;
+    padding: 2px 4px;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+}
+
+.floating-text.is-selected {
+    outline: 1px dashed rgba(74, 85, 96, 0.35);
+    outline-offset: 3px;
+}
+
+.floating-text.is-locked {
+    cursor: default;
+    color: #59656f;
+}
+
+.floating-text[contenteditable="true"] {
+    cursor: text;
+    user-select: text;
 }
 
 .delete-button {

@@ -8,6 +8,7 @@ let dragStartX = 0;
 let dragStartY = 0;
 let justDragged = false;
 let selectedBubble = null;
+let selectedFloatingText = null;
 let isDrawing = false;
 let drawingContext;
 let path = [];
@@ -29,10 +30,12 @@ function getNextGroupColor() {
 }
 
 async function saveKeyword() {
-    const keyword = document.getElementById('keyword').value;
+    const keywordInput = document.getElementById('keyword');
+    const keyword = keywordInput.value.trim();
     if (keyword) {
         const now = new Date();
         const data = {
+            type: 'keyword',
             keyword: keyword,
             date: now.toLocaleDateString(),
             time: now.toLocaleTimeString(),
@@ -43,9 +46,34 @@ async function saveKeyword() {
         };
 
         keywords.push(data);
-        document.getElementById('keyword').value = '';
+        keywordInput.value = '';
         addKeywordBubble(data, keywords.length - 1);
     }
+}
+
+function saveFloatingText() {
+    const keywordInput = document.getElementById('keyword');
+    const text = keywordInput.value.trim();
+    if (!text) return;
+
+    const data = {
+        id: createItemId(),
+        type: 'floatingText',
+        text,
+        x: 8 + Math.random() * 72,
+        y: 8 + Math.random() * 72,
+        locked: false
+    };
+
+    keywordInput.value = '';
+    addFloatingText(data);
+}
+
+function createItemId() {
+    if (window.crypto && window.crypto.randomUUID) {
+        return window.crypto.randomUUID();
+    }
+    return `item-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function addKeywordBubble(data, index) {
@@ -81,6 +109,7 @@ function addKeywordBubble(data, index) {
             return;
         }
 
+        clearFloatingTextSelection();
         selectedBubble = bubble;
         const colorPalette = renderColorPalette(bubble);
         const bubbleRect = bubble.getBoundingClientRect();
@@ -94,6 +123,105 @@ function addKeywordBubble(data, index) {
     });
 
     container.appendChild(bubble);
+}
+
+function addFloatingText(data) {
+    const container = document.getElementById('keywordContainer');
+    const floatingText = document.createElement('div');
+    floatingText.className = 'floating-text';
+    floatingText.textContent = data.text || '';
+    floatingText.dataset.id = data.id || createItemId();
+    setBubbleLocked(floatingText, Boolean(data.locked));
+    floatingText.style.top = `${data.y || 0}%`;
+    floatingText.style.left = `${data.x || 0}%`;
+
+    floatingText.addEventListener('mousedown', (e) => {
+        if (floatingText.dataset.editing === 'true') return;
+        if (isBubbleLocked(floatingText)) return;
+        document.getElementById('colorPalette').style.display = 'none';
+        prepareDrag(floatingText, e);
+    });
+
+    floatingText.addEventListener('click', (e) => {
+        if (justDragged) {
+            justDragged = false;
+            return;
+        }
+        e.stopPropagation();
+        selectFloatingText(floatingText);
+    });
+
+    floatingText.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        editFloatingText(floatingText);
+    });
+
+    attachLockToggle(floatingText, (locked) => {
+        data.locked = locked;
+    });
+
+    container.appendChild(floatingText);
+}
+
+function selectFloatingText(floatingText) {
+    clearFloatingTextSelection();
+    selectedBubble = null;
+    document.getElementById('colorPalette').style.display = 'none';
+    selectedFloatingText = floatingText;
+    floatingText.classList.add('is-selected');
+}
+
+function clearFloatingTextSelection() {
+    if (selectedFloatingText) {
+        selectedFloatingText.classList.remove('is-selected');
+        selectedFloatingText = null;
+    }
+}
+
+function editFloatingText(floatingText) {
+    if (floatingText.dataset.editing === 'true') return;
+
+    const originalText = floatingText.textContent;
+    floatingText.dataset.editing = 'true';
+    floatingText.contentEditable = 'true';
+    selectFloatingText(floatingText);
+    floatingText.focus();
+
+    const finishEditing = () => {
+        const nextText = floatingText.innerText.trim();
+        floatingText.contentEditable = 'false';
+        floatingText.dataset.editing = 'false';
+        floatingText.removeEventListener('blur', finishEditing);
+        floatingText.removeEventListener('keydown', handleEditKeydown);
+
+        if (nextText) {
+            floatingText.textContent = nextText;
+        } else {
+            floatingText.remove();
+            clearFloatingTextSelection();
+        }
+    };
+
+    const cancelEditing = () => {
+        floatingText.textContent = originalText;
+        floatingText.contentEditable = 'false';
+        floatingText.dataset.editing = 'false';
+        floatingText.removeEventListener('blur', finishEditing);
+        floatingText.removeEventListener('keydown', handleEditKeydown);
+    };
+
+    const handleEditKeydown = (e) => {
+        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+            e.preventDefault();
+            floatingText.blur();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelEditing();
+        }
+    };
+
+    floatingText.addEventListener('blur', finishEditing);
+    floatingText.addEventListener('keydown', handleEditKeydown);
 }
 
 function renderColorPalette(targetBubble) {
@@ -128,6 +256,9 @@ document.addEventListener('click', (e) => {
     if (selectedBubble && !e.target.classList.contains('keyword-bubble') && !e.target.classList.contains('color-sample')) {
         document.getElementById('colorPalette').style.display = 'none';
         selectedBubble = null;
+    }
+    if (selectedFloatingText && !e.target.classList.contains('floating-text')) {
+        clearFloatingTextSelection();
     }
 });
 
@@ -179,7 +310,9 @@ document.addEventListener('mouseup', () => {
         const bubbleRect = dragTarget.getBoundingClientRect();
         const position = getBubblePositionData(dragTarget, containerRect);
 
-        if (dragTarget.classList.contains('group-bubble')) {
+        if (dragTarget.classList.contains('floating-text')) {
+            // Position is read directly from the DOM during serialization.
+        } else if (dragTarget.classList.contains('group-bubble')) {
             syncGroupBubbleChildrenPosition(dragTarget, position);
         } else {
             const keywordIndex = Array.from(container.children).indexOf(dragTarget);
@@ -285,6 +418,17 @@ function serializeBubbleState() {
     const container = document.getElementById('keywordContainer');
     const containerRect = container.getBoundingClientRect();
     const items = Array.from(container.children).map((bubble) => {
+        if (bubble.classList.contains('floating-text')) {
+            const position = getBubblePositionData(bubble, containerRect);
+            return {
+                id: bubble.dataset.id || createItemId(),
+                type: 'floatingText',
+                text: bubble.textContent,
+                locked: isBubbleLocked(bubble),
+                ...position
+            };
+        }
+
         if (bubble.classList.contains('group-bubble')) {
             const frame = getGroupFrameData(bubble, containerRect);
             return {
@@ -345,6 +489,18 @@ function restoreArchiveState(archiveData) {
     }));
 
     items.forEach((item) => {
+        if (item.type === 'floatingText') {
+            addFloatingText({
+                id: item.id || createItemId(),
+                type: 'floatingText',
+                text: item.text || '',
+                x: item.x,
+                y: item.y,
+                locked: Boolean(item.locked)
+            });
+            return;
+        }
+
         if (item.type === 'group') {
             const groupBubble = createGroupBubbleFromData(item);
             container.appendChild(groupBubble);
@@ -379,7 +535,7 @@ function loadArchive(event) {
 function canStartDrawing(target) {
     if (!target) return false;
 
-    const blockedSelector = '.keyword-bubble, .delete-button, .input-container, .menu, .color-palette, input, button';
+    const blockedSelector = '.keyword-bubble, .floating-text, .delete-button, .input-container, .menu, .color-palette, input, textarea, button';
     if (target.closest(blockedSelector)) {
         return false;
     }
@@ -406,7 +562,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('keyword').addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-            saveKeyword();
+            e.preventDefault();
+            if (e.shiftKey) {
+                saveFloatingText();
+            } else {
+                saveKeyword();
+            }
         }
     });
 
@@ -420,6 +581,14 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeHelp();
+        clearFloatingTextSelection();
+    }
+
+    const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName) || document.activeElement.isContentEditable;
+    if (!isTyping && selectedFloatingText && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault();
+        selectedFloatingText.remove();
+        clearFloatingTextSelection();
     }
 });
 
@@ -442,7 +611,7 @@ function checkPath() {
 
     const container = document.getElementById('keywordContainer');
     const containerRect = container.getBoundingClientRect();
-    const bubbles = Array.from(container.children);
+    const bubbles = Array.from(container.children).filter((bubble) => !bubble.classList.contains('floating-text'));
 
     const selectedBubbles = bubbles.filter(bubble => {
         const bubbleRect = bubble.getBoundingClientRect();
@@ -636,6 +805,7 @@ function setupGroupBubbleEvents(groupBubble) {
             return;
         }
 
+        clearFloatingTextSelection();
         selectedBubble = groupBubble;
         const colorPalette = renderColorPalette(groupBubble);
         const bubbleRect = groupBubble.getBoundingClientRect();
