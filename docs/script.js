@@ -9,6 +9,7 @@ let dragStartY = 0;
 let justDragged = false;
 let selectedBubble = null;
 let selectedFloatingText = null;
+let activeKeywordEdit = null;
 let isDrawing = false;
 let drawingContext;
 let path = [];
@@ -98,12 +99,14 @@ function addKeywordBubble(data, index) {
     bubble.style.left = `${data.x}%`;
 
     bubble.addEventListener('mousedown', (e) => {
+        if (bubble.dataset.editing === 'true') return;
         if (isBubbleLocked(bubble)) return;
         document.getElementById('colorPalette').style.display = 'none';
         prepareDrag(bubble, e);
     });
 
     bubble.addEventListener('click', (e) => {
+        if (bubble.dataset.editing === 'true') return;
         if (justDragged) {
             justDragged = false;
             return;
@@ -116,6 +119,14 @@ function addKeywordBubble(data, index) {
         colorPalette.style.top = `${bubbleRect.bottom + window.scrollY}px`;
         colorPalette.style.left = `${bubbleRect.left + window.scrollX}px`;
         colorPalette.style.display = 'flex';
+    });
+
+    bubble.addEventListener('dblclick', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        editKeywordBubble(bubble, (nextText) => {
+            data.keyword = nextText;
+        });
     });
 
     attachLockToggle(bubble, (locked) => {
@@ -176,6 +187,99 @@ function clearFloatingTextSelection() {
         selectedFloatingText.classList.remove('is-selected');
         selectedFloatingText = null;
     }
+}
+
+function getKeywordTextNode(bubble) {
+    const textNode = Array.from(bubble.childNodes).find((node) => node.nodeType === Node.TEXT_NODE);
+    if (textNode) return textNode;
+
+    const newTextNode = document.createTextNode('');
+    const deleteButton = bubble.querySelector(':scope > .delete-button');
+    bubble.insertBefore(newTextNode, deleteButton || bubble.firstChild);
+    return newTextNode;
+}
+
+function setKeywordBubbleText(bubble, text) {
+    getKeywordTextNode(bubble).textContent = text;
+}
+
+function editKeywordBubble(bubble, onTextChange) {
+    if (activeKeywordEdit && activeKeywordEdit.bubble !== bubble) {
+        activeKeywordEdit.finish();
+    }
+    if (bubble.dataset.editing === 'true') return;
+
+    const originalText = getBubbleLabelText(getKeywordTextNode(bubble).textContent);
+    const textNode = getKeywordTextNode(bubble);
+    const editInput = document.createElement('input');
+    editInput.type = 'text';
+    editInput.className = 'keyword-edit-input';
+    editInput.value = originalText;
+    editInput.size = Math.max(6, originalText.length || 6);
+    let isFinishing = false;
+
+    const finishEditing = (options = {}) => {
+        if (isFinishing) return;
+        isFinishing = true;
+
+        const shouldCancel = Boolean(options.cancel);
+        const nextText = editInput.value.trim();
+        const finalText = !shouldCancel && nextText ? nextText : originalText;
+
+        editInput.removeEventListener('blur', handleBlur);
+        editInput.removeEventListener('keydown', handleKeydown);
+        setKeywordBubbleText(bubble, finalText);
+        if (editInput.parentNode) {
+            editInput.remove();
+        }
+
+        bubble.dataset.editing = 'false';
+        bubble.classList.remove('is-editing');
+        activeKeywordEdit = null;
+
+        if (!shouldCancel && nextText) {
+            onTextChange(nextText);
+        }
+    };
+
+    const handleBlur = () => {
+        finishEditing();
+    };
+
+    const handleKeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            finishEditing();
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            finishEditing({ cancel: true });
+        }
+        e.stopPropagation();
+    };
+
+    editInput.addEventListener('mousedown', (e) => e.stopPropagation());
+    editInput.addEventListener('click', (e) => e.stopPropagation());
+    editInput.addEventListener('dblclick', (e) => e.stopPropagation());
+    editInput.addEventListener('input', () => {
+        editInput.size = Math.max(6, editInput.value.length || 6);
+    });
+    editInput.addEventListener('blur', handleBlur);
+    editInput.addEventListener('keydown', handleKeydown);
+
+    document.getElementById('colorPalette').style.display = 'none';
+    clearFloatingTextSelection();
+    selectedBubble = null;
+    dragCandidate = null;
+    dragTarget = null;
+    isDragging = false;
+    justDragged = false;
+    bubble.dataset.editing = 'true';
+    bubble.classList.add('is-editing');
+    textNode.textContent = '';
+    bubble.insertBefore(editInput, bubble.querySelector(':scope > .delete-button') || null);
+    activeKeywordEdit = { bubble, finish: finishEditing };
+    editInput.focus();
+    editInput.select();
 }
 
 function editFloatingText(floatingText) {
@@ -792,7 +896,9 @@ function createGroupBubble(bubbles) {
 function setupGroupBubbleEvents(groupBubble) {
     groupBubble.addEventListener('mousedown', (e) => {
         if (e.target.classList.contains('delete-button')) return;
+        if (e.target.closest('.keyword-edit-input')) return;
         const childBubble = e.target.closest('.keyword-bubble');
+        if (childBubble && childBubble.dataset.editing === 'true') return;
         if (childBubble && childBubble !== groupBubble && isBubbleLocked(childBubble)) return;
         if (isBubbleLocked(groupBubble)) return;
         prepareDrag(groupBubble, e);
@@ -800,6 +906,8 @@ function setupGroupBubbleEvents(groupBubble) {
 
     groupBubble.addEventListener('click', (e) => {
         if (e.target.classList.contains('delete-button')) return;
+        if (e.target.closest('.keyword-edit-input')) return;
+        if (groupBubble.dataset.editing === 'true') return;
         if (justDragged) {
             justDragged = false;
             return;
@@ -812,6 +920,22 @@ function setupGroupBubbleEvents(groupBubble) {
         colorPalette.style.top = `${bubbleRect.bottom + window.scrollY}px`;
         colorPalette.style.left = `${bubbleRect.left + window.scrollX}px`;
         colorPalette.style.display = 'flex';
+    });
+
+    groupBubble.addEventListener('dblclick', (e) => {
+        const childBubble = e.target.closest('.keyword-bubble');
+        if (!childBubble || childBubble === groupBubble) return;
+
+        e.preventDefault();
+        e.stopPropagation();
+        editKeywordBubble(childBubble, (nextText) => {
+            const childIndex = Number(childBubble.dataset.groupChildIndex);
+            const originalBubbles = JSON.parse(groupBubble.dataset.originalBubbles || '[]');
+            if (originalBubbles[childIndex]) {
+                originalBubbles[childIndex].text = nextText;
+                groupBubble.dataset.originalBubbles = JSON.stringify(originalBubbles);
+            }
+        });
     });
 
     attachLockToggle(groupBubble, () => {});

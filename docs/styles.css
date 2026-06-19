@@ -92,6 +92,29 @@ textarea {
     border-radius: 8px;
 }
 
+.keyword-bubble.is-editing {
+    cursor: text;
+    outline-color: rgba(45, 74, 96, 0.42);
+    outline-offset: 3px;
+    box-shadow: 0 3px 12px rgba(45, 74, 96, 0.16);
+}
+
+.keyword-edit-input {
+    width: 12ch;
+    min-width: 6ch;
+    max-width: 220px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    line-height: inherit;
+    text-align: inherit;
+    outline: none;
+}
+
 .group-bubble {
     display: flex;
     flex-wrap: wrap;
