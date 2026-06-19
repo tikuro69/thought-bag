@@ -77,7 +77,7 @@ textarea {
 
 .keyword-bubble.is-locked {
     animation: none;
-    cursor: default;
+    cursor: move;
     border-radius: 8px;
     outline-color: rgba(74, 85, 96, 0.22);
     outline-offset: 1px;
@@ -165,7 +165,7 @@ textarea {
 }
 
 .floating-text.is-locked {
-    cursor: default;
+    cursor: move;
     color: #59656f;
 }
 

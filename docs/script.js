@@ -100,7 +100,6 @@ function addKeywordBubble(data, index) {
 
     bubble.addEventListener('mousedown', (e) => {
         if (bubble.dataset.editing === 'true') return;
-        if (isBubbleLocked(bubble)) return;
         document.getElementById('colorPalette').style.display = 'none';
         prepareDrag(bubble, e);
     });
@@ -148,7 +147,6 @@ function addFloatingText(data) {
 
     floatingText.addEventListener('mousedown', (e) => {
         if (floatingText.dataset.editing === 'true') return;
-        if (isBubbleLocked(floatingText)) return;
         document.getElementById('colorPalette').style.display = 'none';
         prepareDrag(floatingText, e);
     });
@@ -483,7 +481,7 @@ function syncGroupBubbleChildrenPosition(groupBubble, position) {
     const offsetX = position.x - minX;
     const offsetY = position.y - minY;
 
-    const movedBubbles = originalBubbles.map((bubble) => bubble.locked ? bubble : ({
+    const movedBubbles = originalBubbles.map((bubble) => ({
         ...bubble,
         x: bubble.x + offsetX,
         y: bubble.y + offsetY
@@ -752,7 +750,6 @@ function getBubbleLabelText(text) {
 }
 
 function prepareDrag(target, event) {
-    if (isBubbleLocked(target)) return;
     dragCandidate = target;
     offsetX = event.clientX - target.getBoundingClientRect().left;
     offsetY = event.clientY - target.getBoundingClientRect().top;
@@ -899,8 +896,6 @@ function setupGroupBubbleEvents(groupBubble) {
         if (e.target.closest('.keyword-edit-input')) return;
         const childBubble = e.target.closest('.keyword-bubble');
         if (childBubble && childBubble.dataset.editing === 'true') return;
-        if (childBubble && childBubble !== groupBubble && isBubbleLocked(childBubble)) return;
-        if (isBubbleLocked(groupBubble)) return;
         prepareDrag(groupBubble, e);
     });
 
