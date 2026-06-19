@@ -23,23 +23,28 @@ Thought Bag is meant for that in-between space: not polished notes, not task man
 ## What It Can Do
 
 - Add keyword bubbles from text input
+- Add floating text for notes or fragments that should stay as plain text
 - Drag bubbles around freely
+- Drag floating text around freely
 - Draw around multiple bubbles to group them into a larger bubble
 - Ungroup a large bubble back into small bubbles
 - Change colors manually
 - Save and reopen your current state with `Save Local` / `Open Local`
-- Restore grouped states as groups, not just individual bubbles
+- Restore grouped states and floating text, not just individual bubbles
 - Keep your data local as JSON files without server-side storage
 
 ## Basic Use
 
 1. Type a word or short phrase into the input field.
 2. Press `Cmd + Enter` to add it as a bubble.
-3. Drag bubbles around to make space or place related ideas near each other.
-4. Draw a loose shape around several bubbles to turn them into a group.
-5. Click the `×` on a group bubble to break it back into small bubbles.
-6. Click a bubble to change its color if you want to reorganize visually.
-7. Use `Save Local` to download the current state as a JSON file, and `Open Local` to restore it later.
+3. Press `Shift + Cmd + Enter` to add the input as floating text instead.
+4. Drag bubbles or floating text around to make space or place related ideas near each other.
+5. Double-click floating text to edit it. Press `Cmd + Enter` to finish editing, or `Escape` to cancel.
+6. Select floating text and press `Delete` or `Backspace` to remove it.
+7. Draw a loose shape around several bubbles to turn them into a group.
+8. Click the `×` on a group bubble to break it back into small bubbles.
+9. Click a bubble to change its color if you want to reorganize visually.
+10. Use `Save Local` to download the current state as a JSON file, and `Open Local` to restore it later.
 
 ## Run Locally
 
@@ -64,6 +69,7 @@ It is especially useful when you want to notice patterns without forcing everyth
 
 - This is a lightweight local tool, not a full note-taking system.
 - It is designed for short words and small idea fragments, not long-form writing.
+- Floating text is useful for loose notes, labels, or context that should not become a bubble or group.
 - Grouping keeps items in a flat internal structure for simplicity.
 - Local saves are exported as JSON files and restored through the browser.
 - There is no voice input feature anymore; the app now focuses on simple keyboard-based capture.
